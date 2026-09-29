@@ -3,11 +3,19 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Text, Fore
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'fitbuddy.db')}"
+
+# Vercel Functions have a read-only deployment filesystem. Use writable /tmp there;
+# local development keeps the persistent SQLite database in the project directory.
+if os.getenv("VERCEL") == "1":
+    DATABASE_PATH = os.path.join("/tmp", "fitbuddy.db")
+else:
+    DATABASE_PATH = os.path.join(BASE_DIR, "fitbuddy.db")
+
+DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}
+    DATABASE_URL,
+    connect_args={"check_same_thread": False},
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

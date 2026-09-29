@@ -6,16 +6,16 @@ from app.database import init_db
 
 app = FastAPI(title="FitBuddy - AI Fitness Plan Generator")
 
-# Initialize SQLite tables
+# SQLite can only be written to /tmp on Vercel Functions. init_db() is safe here
+# because database.py selects /tmp when running in the Vercel environment.
 init_db()
 
-# Mount static asset directory
+# Static assets are committed under app/templates/static. Do not create directories
+# at import time because Vercel's deployed filesystem is read-only.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-os.makedirs(STATIC_DIR, exist_ok=True)
+STATIC_DIR = os.path.join(BASE_DIR, "app", "templates", "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# Register routes
 app.include_router(router)
 
 if __name__ == "__main__":
